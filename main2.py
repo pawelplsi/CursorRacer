@@ -36,6 +36,7 @@ class Controller:
     def __init__(self):
         self.left_button = False
         self.right_button = False
+        self.middle_button = False
         self.velocity = 0.0
         self.rotation = 0.0
         self.pos_x = 0.0
@@ -58,7 +59,7 @@ class Controller:
     def updatePosition(self):
         mouse.move(self.pos_x, self.pos_y)
 
-    def enforceBounds(self):
+    def bounceBounds(self):
         if self.pos_x < 0:
             self.pos_x = 0
             self.rotation = math.pi - self.rotation
@@ -80,7 +81,9 @@ class Controller:
             self.rotation -= rotation_velocity
         if self.right_button:
             self.rotation += rotation_velocity
-        self.enforceBounds()
+        if(self.left_button and self.right_button):
+            self.velocity = 0.0
+        self.bounceBounds()
         # print('r'+str(right_button))
         # print('l'+str(left_button))
         # print(f"{self.pos_x}, {self.pos_y}")
