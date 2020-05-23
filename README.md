@@ -13,3 +13,5 @@ Contributors:
 - [Paweł Sadowski](https://github.com/pawelplsi)
 - [Artur Grochal](https://github.com/agrochal)
 - [Bartek Pacia](https://github.com/bartekpacia)
+
+Created for Stupid Hack 2020.
