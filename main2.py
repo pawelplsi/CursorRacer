@@ -13,12 +13,14 @@ class MouseDisabler:
     def scan(self):
         proc = subprocess.Popen(['xinput','list','--id-only'],stdout=subprocess.PIPE)
         ids = [int(line) for line in proc.stdout.readlines()]
-        proc = subprocess.Popen(['xinput','list','--name-only'],stdout=subprocess.PIPE)
-        names = [str(line) for line in proc.stdout.readlines()]
+        proc = subprocess.Popen(['xinput','list'],stdout=subprocess.PIPE)
+        lines = [str(line) for line in proc.stdout.readlines()]
         self.mouse_ids = []
         for i in range(0, len(ids)):
-            if 'mouse' in names[i].lower():
+            print(lines[i])
+            if 'pointer' in lines[i]:
                 self.mouse_ids.append(ids[i])
+                print('chuj')
         self.scan_done = True
 
     def disable(self):
@@ -94,6 +96,7 @@ def start():
     try:
         m_disabler = MouseDisabler()
         m_disabler.scan()
+
         m_disabler.disable()
         ctrl.pos_x, ctrl.pos_y = mouse.get_position()
         mouse.hook(callback)
