@@ -22,6 +22,10 @@ https://www.youtube.com/watch?v=cQuVaXBaXcI
 - Windows - with a few glitches
 - Mac OS - planned
 
+### Required libraries (Python3):
+- mouse
+- pynput
+- screeninfo
 
 ### Contributors:
 
