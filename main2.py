@@ -1,8 +1,35 @@
 import mouse
 import time
 import math
+import subprocess
 
 rotation_velocity = 0.05
+
+class MouseDisabler:
+    def __init__(self):
+        self.scan_done = False
+        self.mouse_ids = []
+
+    def scan(self):
+        proc = subprocess.Popen(['xinput','list','--id-only'],stdout=subprocess.PIPE)
+        ids = [int(line) for line in proc.stdout.readlines()]
+        proc = subprocess.Popen(['xinput','list','--name-only'],stdout=subprocess.PIPE)
+        names = [str(line) for line in proc.stdout.readlines()]
+        self.mouse_ids = []
+        for i in range(0, len(ids)):
+            if 'mouse' in names[i].lower():
+                self.mouse_ids.append(ids[i])
+        self.scan_done = True
+
+    def disable(self):
+        if not self.scan_done:
+            scan(self)
+        for id in self.mouse_ids:
+            subprocess.Popen(['xinput','disable',str(id)])
+
+    def enable(self):
+        for id in self.mouse_ids:
+            subprocess.Popen(['xinput','enable',str(id)])
 
 class Controller:
     def __init__(self):
@@ -55,7 +82,7 @@ class Controller:
         self.enforceBounds()
         # print('r'+str(right_button))
         # print('l'+str(left_button))
-        print(f"{self.pos_x}, {self.pos_y}")
+        # print(f"{self.pos_x}, {self.pos_y}")
         self.updatePosition()
 
 ctrl = Controller()
@@ -64,11 +91,18 @@ def callback(e):
     ctrl.onEvent(e)
 
 def start():
-    ctrl.pos_x, ctrl.pos_y = mouse.get_position()
-    mouse.hook(callback)
-    while True:
-        time.sleep(0.01)
-        ctrl.tick()
+    try:
+        m_disabler = MouseDisabler()
+        m_disabler.scan()
+        m_disabler.disable()
+        ctrl.pos_x, ctrl.pos_y = mouse.get_position()
+        mouse.hook(callback)
+        while True:
+            time.sleep(0.01)
+            ctrl.tick()
+    except KeyboardInterrupt:
+        m_disabler.enable()
+        pass
 
 
 start()
