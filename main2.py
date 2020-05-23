@@ -2,6 +2,7 @@ import mouse
 import time
 import math
 import subprocess
+import screeninfo
 
 rotation_velocity = 0.05
 
@@ -17,21 +18,19 @@ class MouseDisabler:
         lines = [str(line) for line in proc.stdout.readlines()]
         self.mouse_ids = []
         for i in range(0, len(ids)):
-            print(lines[i])
             if 'pointer' in lines[i]:
                 self.mouse_ids.append(ids[i])
-                print('chuj')
         self.scan_done = True
 
     def disable(self):
         if not self.scan_done:
             scan(self)
         for id in self.mouse_ids:
-            subprocess.Popen(['xinput','disable',str(id)])
+            subprocess.Popen(['xinput','disable',str(id)], stderr=open("NUL","w"))
 
     def enable(self):
         for id in self.mouse_ids:
-            subprocess.Popen(['xinput','enable',str(id)])
+            subprocess.Popen(['xinput','enable',str(id)], stderr=open("NUL","w"))
 
 class Controller:
     def __init__(self):
@@ -41,8 +40,8 @@ class Controller:
         self.rotation = 0.0
         self.pos_x = 0.0
         self.pos_y = 0.0
-        self.max_x = 1920
-        self.max_y = 1080
+        self.max_x = 0
+        self.max_y = 0
 
 
     def onEvent(self, event):
@@ -96,9 +95,11 @@ def start():
     try:
         m_disabler = MouseDisabler()
         m_disabler.scan()
-
         m_disabler.disable()
+        ctrl.max_x = max([m.width for m in screeninfo.get_monitors()])
+        ctrl.max_y = max([m.height for m in screeninfo.get_monitors()])
         ctrl.pos_x, ctrl.pos_y = mouse.get_position()
+
         mouse.hook(callback)
         while True:
             time.sleep(0.01)
