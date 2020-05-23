@@ -52,8 +52,11 @@ class Controller:
 
     def onEvent(self, event):
         if type(event) == mouse._mouse_event.WheelEvent:
-            self.velocity += event.delta
-            self.velocity = max(0, self.velocity)
+            if self.left_button and self.right_button:
+                self.mouse_ctrl.scroll(0, event.delta)
+            else:
+                self.velocity += event.delta
+                self.velocity = max(0, self.velocity)
         if type(event) == mouse._mouse_event.ButtonEvent:
             val = True if event.event_type == 'down' else False
             if event.button == 'middle':
@@ -82,9 +85,7 @@ class Controller:
     def sendButtonEvent(self, button, down):
         if down:
             self.mouse_ctrl.press(button)
-            print('pressing ')
         else:
-            print('releasing ')
             self.mouse_ctrl.release(button)
 
     def outputButtons(self, left, right, middle):
