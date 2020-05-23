@@ -3,9 +3,10 @@ import time
 import math
 import subprocess
 import screeninfo
-from pynput.mouse import Controller as MouseController, Button
+from pynput.mouse import Controller as MouseController, Listener as MouseListener, Button
 
 rotation_velocity = 0.05
+
 
 class MouseDisabler:
     def __init__(self):
@@ -13,9 +14,10 @@ class MouseDisabler:
         self.mouse_ids = []
 
     def scan(self):
-        proc = subprocess.Popen(['xinput','list','--id-only'],stdout=subprocess.PIPE)
+        proc = subprocess.Popen(
+            ['xinput', 'list', '--id-only'], stdout=subprocess.PIPE)
         ids = [int(line) for line in proc.stdout.readlines()]
-        proc = subprocess.Popen(['xinput','list'],stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['xinput', 'list'], stdout=subprocess.PIPE)
         lines = [str(line) for line in proc.stdout.readlines()]
         self.mouse_ids = []
         for i in range(0, len(ids)):
@@ -27,11 +29,14 @@ class MouseDisabler:
         if not self.scan_done:
             self.scan()
         for id in self.mouse_ids:
-            subprocess.Popen(['xinput','disable',str(id)], stderr=open("NUL","w"))
+            subprocess.Popen(['xinput', 'disable', str(id)],
+                             stderr=open("NUL", "w"))
 
     def enable(self):
         for id in self.mouse_ids:
-            subprocess.Popen(['xinput','enable',str(id)], stderr=open("NUL","w"))
+            subprocess.Popen(['xinput', 'enable', str(id)],
+                             stderr=open("NUL", "w"))
+
 
 class Controller:
     def __init__(self):
@@ -49,6 +54,8 @@ class Controller:
         self.max_y = 0
         self.mouse_ctrl = MouseController()
 
+    # def on_click(self, button, down):
+    #     event
 
     def onEvent(self, event):
         if type(event) == mouse._mouse_event.WheelEvent:
@@ -71,7 +78,8 @@ class Controller:
         mouse.move(self.pos_x, self.pos_y)
 
     def updateButtons(self):
-        left, right, middle = self.outputButtons(self.left_button, self.right_button, self.middle_button)
+        left, right, middle = self.outputButtons(
+            self.left_button, self.right_button, self.middle_button)
         if(left != self.out_left):
             self.sendButtonEvent(Button.left, left)
             self.out_left = left
@@ -97,7 +105,7 @@ class Controller:
         elif middle:
             return (left, right, False)
         return zero
-    
+
     def bounceBounds(self):
         if self.pos_x < 0:
             self.pos_x = 0
@@ -111,7 +119,6 @@ class Controller:
         if self.pos_y > self.max_y:
             self.pso_y = self.max_y
             self.rotation = -self.rotation
-
 
     def tick(self):
         self.pos_x += self.velocity*math.cos(self.rotation)
@@ -128,13 +135,16 @@ class Controller:
         # print(f"{self.pos_x}, {self.pos_y}")
         self.updatePosition()
 
+
 ctrl = Controller()
 
 def callback(e):
     ctrl.onEvent(e)
 
+
 def start():
     try:
+        print('Capturing mouse...')
         m_disabler = MouseDisabler()
         # m_disabler.scan()
         m_disabler.disable()
@@ -142,12 +152,17 @@ def start():
         ctrl.max_y = max([m.height for m in screeninfo.get_monitors()])
         ctrl.pos_x, ctrl.pos_y = mouse.get_position()
 
+        # listener = MouseListener(
+            # on_click=lambda _, _1, button, down: ctrl.on_click(button, down)
+            # on_)
         mouse.hook(callback)
+        print('CursorRacer ready!')
         while True:
             time.sleep(0.01)
             # mouse.double_click()
             ctrl.tick()
     except KeyboardInterrupt:
+        print('Exiting...')
         m_disabler.enable()
         pass
 
